@@ -6,7 +6,7 @@ Centinel is a tool used to detect network interference, \
 online information controls, and Internet censorship."""
 
 setup(
-    name = "centinel",
+    name = "centinel-dev",
     version = "0.1.5.4",
     author = "ICLab Developers",
     author_email = "info@iclab.org",
@@ -24,7 +24,7 @@ setup(
                         "ndg-httpsclient >= 0.4.0"],
     include_package_data = True,
     entry_points = {
-        'console_scripts': ['centinel=centinel.cli:run',
-                            'centinel-vpn=centinel.vpn.cli:run']
+        'console_scripts': ['centinel-dev=centinel.cli:run',
+                            'centinel-dev-vpn=centinel.vpn.cli:run']
     },
 )
