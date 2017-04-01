@@ -159,7 +159,9 @@ def get_request(netloc, path="/", headers=None, ssl=False,
         http_results["redirects"][0] = first_response_information
         redirect_http_result = None
         redirect_number = 1
+        redirect_failed = False
         while redirect_http_result is None or is_redirecting and\
+                not redirect_failed and\
                 redirect_number <= REDIRECT_LOOP_THRESHOLD:  # While there are more redirects...
             # Usually, redirects that redirect more than 5 times are infinite loops
             if response_headers_contains_location:
@@ -189,27 +191,27 @@ def get_request(netloc, path="/", headers=None, ssl=False,
 
             # If there is an error in the redirects, break the loop and stop there
             if "failure" in redirect_http_result["response"]:
-                http_results["response"] = redirect_http_result["response"]  # This will count as the final response
-                break
+                redirect_failed = True
 
             response_headers_contains_location = False
             location_url = None
-            for header, header_value in redirect_http_result["response"]["headers"].items():
-                if header.lower() == "location":
-                    response_headers_contains_location = True
-                    location_url = header_value
-
-            # check meta redirect
-            meta_redirect_url = None
             is_meta_redirect = False
-            if "body" in redirect_http_result["response"]:
-                meta_redirect_url = meta_redirect(redirect_http_result["response"]["body"])
-            elif "body.b64" in redirect_http_result["response"]:
-                body_decoded = base64.b64decode(first_response["response"]["body.b64"])
-                meta_redirect_url = meta_redirect(body_decoded)
+            if not redirect_failed:
+                for header, header_value in redirect_http_result["response"]["headers"].items():
+                    if header.lower() == "location":
+                        response_headers_contains_location = True
+                        location_url = header_value
 
-            if meta_redirect_url is not None:
-                is_meta_redirect = True
+                # check meta redirect
+                meta_redirect_url = None
+                if "body" in redirect_http_result["response"]:
+                    meta_redirect_url = meta_redirect(redirect_http_result["response"]["body"])
+                elif "body.b64" in redirect_http_result["response"]:
+                    body_decoded = base64.b64decode(first_response["response"]["body.b64"])
+                    meta_redirect_url = meta_redirect(body_decoded)
+
+                if meta_redirect_url is not None:
+                    is_meta_redirect = True
 
             is_redirecting = response_headers_contains_location or is_meta_redirect
 
